@@ -6,8 +6,7 @@ var Game = function(config) {
   this.context = this.viewport.getContext('2d')
   this.game_width = config.game_width;
   this.game_height = config.game_height;
-
-  this.test_rad = 20;
+  this.fps = config.fps;
 
   this.snake = new Snake({x: 400, y: 240})
 };
@@ -16,9 +15,7 @@ var Game = function(config) {
 Game.prototype.run = function(){
   this.update();
   this.draw(this.context);
-
-  // start the main loop
-  requestAnimationFrame( this.run.bind(this), this.viewport);
+  setTimeout(this.run.bind(this), 1000 / this.fps);
 };
 
 Game.prototype.update = function() {
@@ -27,8 +24,6 @@ Game.prototype.update = function() {
   var dt = (thisFrame - this.lastFrame)/1000;
   if(!dt){dt = 0;} // Handle NaN
   this.lastFrame = thisFrame;
-
-  this.handle_collisions();
 
   this.snake.update(dt);
 };
@@ -40,7 +35,5 @@ Game.prototype.draw = function(context) {
   //Draw all of the game's objects
   this.snake.draw(context);
 };
-
-Game.prototype.handle_collisions = function() {}
 
 module.exports = Game

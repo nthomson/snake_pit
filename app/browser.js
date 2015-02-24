@@ -6,7 +6,8 @@ var Game = SnakePit.Game
 var game = new Game({
   viewport: viewport,
   game_width: 800,
-  game_height: 480
+  game_height: 480,
+  fps: 30
 });
 
 // Snake acts as controllable
