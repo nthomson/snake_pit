@@ -2,35 +2,36 @@ var Snake  = require('./snake'),
     helpers = require('./helpers');
 
 var Game = function(config) {
-  this.viewport = config.viewport;
-  this.context = this.viewport.getContext('2d')
-  this.game_width = config.game_width;
-  this.game_height = config.game_height;
-  this.fps = config.fps;
+  this.config = config;
+  this.context = this.config.viewport.getContext('2d')
+  this.dt = 0;
 
   this.snake = new Snake({x: 400, y: 240})
 };
 
 // Main game loop
+var start, last = new Date().getTime();
 Game.prototype.run = function(){
-  this.update();
+  start = new Date().getTime();
+  this.update((start - last) / 1000.0);
   this.draw(this.context);
-  setTimeout(this.run.bind(this), 1000 / this.fps);
+  last = start;
+  setTimeout(this.run.bind(this), 1);
 };
 
-Game.prototype.update = function() {
-  // Calculate time since last frame (delta time)
-  var thisFrame = new Date().getTime();
-  var dt = (thisFrame - this.lastFrame)/1000;
-  if(!dt){dt = 0;} // Handle NaN
-  this.lastFrame = thisFrame;
+Game.prototype.update = function(idt) {
+  this.dt += idt;
 
-  this.snake.update(dt);
+  // Its been long enough to update.
+  if(this.dt > this.config.step) {
+    this.dt -= this.config.step;
+    this.snake.update();
+  }
 };
 
 Game.prototype.draw = function(context) {
   //Clear the canvas
-  context.clearRect(0, 0, this.game_width, this.game_height);
+  context.clearRect(0, 0, this.config.game_width, this.config.game_height);
 
   //Draw all of the game's objects
   this.snake.draw(context);
