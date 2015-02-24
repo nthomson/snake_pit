@@ -23,8 +23,8 @@ Game.prototype.update = function(idt) {
   this.dt += idt;
 
   // Its been long enough to update.
-  if(this.dt > this.config.step) {
-    this.dt -= this.config.step;
+  if(this.dt >= this.config.step) {
+    this.dt = 0;
     this.snake.update();
   }
 };

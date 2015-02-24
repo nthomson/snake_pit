@@ -7,7 +7,7 @@ var game = new Game({
   viewport: viewport,
   game_width: 900,
   game_height: 525,
-  step: .06
+  step: .1
 });
 
 // Snake acts as controllable
