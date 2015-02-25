@@ -6,19 +6,29 @@ var Snake = function(base) {
   this.sections = [{x: 300, y: 150}]
 };
 
-Snake.prototype.collide = function(collidedWith) {
-  //Handle what happens when player collides with <collidedWith>
+Snake.prototype.eat = function() {
+  this.ateSomething = true;
+}
+
+Snake.prototype.explode = function() {
+  this.dead = true
 }
 
 Snake.prototype.update = function() {
-  this.ateSomething = Math.random() > 0.95;
-  var newPos = this.handle_movement(this.sections[0]);
+  if(this.dead) {
+    // Unwind the snake after death
+    this.sections.pop()
+  }
+  else {
+    var newPos = this.handle_movement(this.sections[0]);
 
-  if(this.lastKey) {
-    var tail = this.ateSomething ? {} : this.sections.pop()
-    tail.x = newPos.x;
-    tail.y = newPos.y;
-    this.sections.unshift(tail)
+    if(this.lastKey) {
+      var tail = this.ateSomething ? {} : this.sections.pop()
+      tail.x = newPos.x;
+      tail.y = newPos.y;
+      this.sections.unshift(tail)
+    }
+    this.ateSomething = false
   }
 }
 
@@ -34,6 +44,7 @@ Snake.prototype.draw = function(context) {
       context.fillRect(section.x,section.y, this.size, this.size);
     else
       context.fillRect(section.x + 1,section.y + 1, this.size-2, this.size-2);
+    context.globalAlpha = 1
   }.bind(this))
 }
 
