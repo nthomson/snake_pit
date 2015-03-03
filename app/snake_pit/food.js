@@ -1,6 +1,6 @@
 var Food = function(freeSquares) {
   this.size = 15;
-  this.color = '#000'
+  this.color = '#fff'
 
   this.placeFood(freeSquares);
 };

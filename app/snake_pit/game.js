@@ -53,15 +53,27 @@ var collides = function(a, b) {
 }
 
 Game.prototype.handleCollisions = function() {
-  if(collides(this.snake.sections[0], this.food)) {
-    this.snake.eat();
-    this.food.placeFood(this.freeSquares());
-  }
+  if(!this.snake.dead) {
+    // Snake collides with food
+    if(collides(this.snake.head, this.food)) {
+      this.snake.eat();
+      this.food.placeFood(this.freeSquares());
+    }
 
-  // if(this.snake.collidesWith(this.food)){
-  //   this.snake.eat();
-  //   this.food.placeFood(this.freeSquares());
-  // }
+    // Snake collides with itself
+    if(this.snake.sections.filter(collides.bind(null, this.snake.head)).length > 1){
+      this.snake.explode();
+    }
+
+    // Snake collides with wall
+    if(this.outOfMap(this.snake.head)){
+      this.snake.explode();
+    }
+  }
+}
+
+Game.prototype.outOfMap = function(obj) {
+  return obj.x < 0 || obj.y < 0 || obj.y >= this.config.game_height || obj.x >= this.config.game_width;
 }
 
 Game.prototype.freeSquares = function() {

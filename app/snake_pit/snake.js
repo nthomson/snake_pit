@@ -3,7 +3,8 @@ var Snake = function(base) {
   this.y = base.y || 0;
   this.size = base.size || 15;
   this.color = '#'+Math.floor(Math.random()*16777215).toString(16);
-  this.sections = [{x: 300, y: 150}]
+  this.sections = [{x: 0, y: 0}]
+  this.head = this.sections[0]
 };
 
 Snake.prototype.eat = function() {
@@ -17,12 +18,12 @@ Snake.prototype.explode = function() {
 Snake.prototype.update = function() {
   if(this.dead) {
     // Unwind the snake after death
-    this.sections.pop()
+    // this.sections.pop()
   }
   else {
-    var newPos = this.handle_movement(this.sections[0]);
+    var newPos = this.handle_movement(this.head);
 
-    if(this.lastKey) {
+    if(this.lastDirection) {
       var tail = this.ateSomething ? {} : this.sections.pop()
       tail.x = newPos.x;
       tail.y = newPos.y;
@@ -30,6 +31,8 @@ Snake.prototype.update = function() {
     }
     this.ateSomething = false
   }
+
+  this.head = this.sections[0];
 }
 
 Snake.prototype.draw = function(context) {
@@ -38,7 +41,7 @@ Snake.prototype.draw = function(context) {
 
   this.sections.forEach(function(section, index){
     var alpha = 1.0 - (index / this.sections.length)
-    alpha = alpha < 0.5 ? 0.5 : alpha;
+    alpha = alpha < 0.75 ? 0.75 : alpha;
     context.globalAlpha = alpha
     if(index == 0)
       context.fillRect(section.x,section.y, this.size, this.size);

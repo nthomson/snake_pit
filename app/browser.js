@@ -5,12 +5,12 @@ var Game = SnakePit.Game
 
 var game = new Game({
   viewport: viewport,
-  game_width: 900,
-  game_height: 525,
-  step: .08
+  game_width: 240,
+  game_height: 240,
+  step: 0.1
 });
 
 // Snake acts as controllable
-SnakePit.Controllable.call(game.snake)
+SnakePit.KeyboardControllable.call(game.snake)
 
 game.run()
