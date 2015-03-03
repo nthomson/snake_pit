@@ -18,7 +18,7 @@ Snake.prototype.explode = function() {
 Snake.prototype.update = function() {
   if(this.dead) {
     // Unwind the snake after death
-    // this.sections.pop()
+    this.sections.pop()
   }
   else {
     var newPos = this.handle_movement(this.head);

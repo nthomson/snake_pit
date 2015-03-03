@@ -1,10 +1,9 @@
 var Snake   = require('./snake'),
-    Food    = require('./food'),
-    helpers = require('./helpers');
+    Food    = require('./food');
 
 var Game = function(config) {
   this.config = config;
-  this.context = this.config.viewport.getContext('2d')
+  this.context = config.viewport ? this.config.viewport.getContext('2d') : null;
   this.dt = 0;
 
   this.squares = [];
@@ -40,12 +39,14 @@ Game.prototype.update = function(idt) {
 };
 
 Game.prototype.draw = function(context) {
-  //Clear the canvas
-  context.clearRect(0, 0, this.config.game_width, this.config.game_height);
+  if(this.context) {
+    //Clear the canvas
+    context.clearRect(0, 0, this.config.game_width, this.config.game_height);
 
-  //Draw all of the game's objects
-  this.snake.draw(context);
-  this.food.draw(context);
+    //Draw all of the game's objects
+    this.snake.draw(context);
+    this.food.draw(context);
+  }
 };
 
 var collides = function(a, b) {

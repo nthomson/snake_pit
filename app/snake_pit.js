@@ -1,6 +1,6 @@
 module.exports = {
     Game: require('./snake_pit/game'),
     Snake: require('./snake_pit/snake'),
-    helpers: require('./snake_pit/helpers'),
-    KeyboardControllable: require('./snake_pit/mixins/keyboard_controllable')
+    KeyboardControllable: require('./snake_pit/mixins/keyboard_controllable'),
+    SocketControllable: require('./snake_pit/mixins/socket_controllable')
 };
