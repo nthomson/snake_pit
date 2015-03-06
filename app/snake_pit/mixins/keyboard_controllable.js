@@ -10,7 +10,7 @@ var KeyboardControllable = function(viewport, socket) {
     var direction = directionMap[e.which];
     this.moveQueue.unshift(direction);
     if(socket) {
-      socket.emit('move', {direction: direction});
+      socket.broadcast('move', {direction: direction});
     }
   };
 

@@ -22,8 +22,10 @@ angular.module('snakePitApp', [])
         game_height: data.game.config.game_height,
         step: data.game.config.step
       });
+      game.food.x = data.game.food.x;
+      game.food.y = data.game.food.y;
       if(data.ongoing){
-        SnakePit.SocketControllable.call(game.snake, viewport, socket); // Snake acts as controllable
+        SnakePit.SocketControllable.call(game.snake, socket, false); // Snake acts as controllable
       }
       else {
         SnakePit.KeyboardControllable.call(game.snake, viewport, socket); // Snake acts as controllable
