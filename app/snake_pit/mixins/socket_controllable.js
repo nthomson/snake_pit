@@ -8,7 +8,7 @@ var SocketControllable = function(socket, emit) {
     console.log('move', e.direction);
     this.moveQueue.unshift(e.direction);
     if(emit){
-      socket.broadcast('move', {direction: e.direction});
+      socket.broadcast.emit('move', {direction: e.direction});
     }
   }.bind(this));
 };
