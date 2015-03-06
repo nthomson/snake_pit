@@ -39,6 +39,18 @@ Game.prototype.update = function(idt) {
   }
 };
 
+
+Game.prototype.toState = function(){
+  return {
+    snakes: this.snakes,
+    food: this.food
+  }
+}
+
+Game.prototype.fromState = function(state){
+
+}
+
 Game.prototype.draw = function(context) {
   if(this.context) {
     //Clear the canvas

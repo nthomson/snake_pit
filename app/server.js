@@ -15,6 +15,7 @@ var gameConfig = {
 };
 
 var newGame = function(players) {
+  console.log('name game');
   game = new Game(gameConfig);
 
   players.forEach(function(player, index){
@@ -22,17 +23,25 @@ var newGame = function(players) {
   });
 
   game.run();
+  console.log('broadcast game_state to everyone');
   io.emit('game_state', { game: game, ongoing: false });
 }
 
 
 io.sockets.on('connection', function(socket){
+  console.log('connection')
   io.emit('pool', playerPool);
+
+  if(game) {
+    socket.emit('game_state', { game: game, ongoing: true });
+    console.log('broadcast gaem_state to single');
+  }
 
 
   var player;
 
   socket.on('join_pool', function(data){
+    console.log('join_pool: ', data.name)
     player = {
       name: data.name,
       id: Math.random().toString(36).substring(2, 8),
@@ -43,12 +52,11 @@ io.sockets.on('connection', function(socket){
 
     io.emit('pool', playerPool);
 
-    if(game) {
-      io.emit('game_state', { game: game, ongoing: true });
-    }
-    else if(playerPool.length >= gameConfig.player_count) {
+
+    if(playerPool.length >= gameConfig.player_count) {
       // Start a new game with the first <player_count> players in playerPool and remove them from the pool
       newGame(playerPool.splice(0, gameConfig.player_count));
+      io.emit('pool', playerPool);
     }
   });
 
