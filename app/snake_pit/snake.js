@@ -1,8 +1,8 @@
 var Snake = function(base) {
   this.x = base.x || 0;
   this.y = base.y || 0;
-  this.size = base.size || 15;
-  this.color = '#'+Math.floor(Math.random()*16777215).toString(16);
+  this.size = base.size || 30;
+  this.color = '#08c';
   this.sections = [{x: 0, y: 0}]
   this.head = this.sections[0]
 };
@@ -12,6 +12,7 @@ Snake.prototype.eat = function() {
 }
 
 Snake.prototype.explode = function() {
+  console.log('dead');
   this.dead = true
 }
 

@@ -7,13 +7,14 @@ var Game = function(config) {
   this.dt = 0;
 
   this.squares = [];
-  for(var x = 0; x < config.game_width; x+=15) {
-    for(var y = 0; y < config.game_height; y+=15) {
+  for(var x = 0; x < config.game_width; x+=30) {
+    for(var y = 0; y < config.game_height; y+=30) {
       this.squares.push({x: x, y: y})
     }
   }
 
-  this.snake = new Snake({x: 0, y: 0})
+  this.snakes = [new Snake({x: 0, y: 0})];
+  this.snake = this.snakes[0];
   this.food = new Food(this.freeSquares())
 };
 

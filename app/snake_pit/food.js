@@ -1,5 +1,5 @@
 var Food = function(freeSquares) {
-  this.size = 15;
+  this.size = 30;
   this.color = '#fff'
 
   this.placeFood(freeSquares);
@@ -14,7 +14,6 @@ Food.prototype.placeFood = function(freeSquares) {
 }
 
 Food.prototype.draw = function(context) {
-  // For each cell, draw a ?square?
   context.fillStyle = this.color;
   context.fillRect(this.x,this.y, this.size, this.size);
 }

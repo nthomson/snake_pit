@@ -1,6 +1,6 @@
 var Controllable = require('./controllable');
 
-var KeyboardControllable = function(socket) {
+var KeyboardControllable = function(viewport, socket) {
   // Mixin controllable
   Controllable.call(this);
 
@@ -14,8 +14,8 @@ var KeyboardControllable = function(socket) {
     }
   };
 
-  if(window) {
-    window.onkeydown = this.keyDown.bind(this);
+  if(viewport) {
+    viewport.onkeydown = this.keyDown.bind(this);
   }
 }
 
