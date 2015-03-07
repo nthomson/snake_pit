@@ -10,61 +10,83 @@ var gameConfig = {
   viewport: null,
   game_width: 480,
   game_height: 480,
-  player_count: 1,
+  player_count: 2,
   step: 0.1
 };
 
-var newGame = function(players) {
-  console.log('name game');
-  game = new Game(gameConfig);
+function newGame(players) {
+  console.log('New game with:', players.map(function(p){ return p.name;}).join(', '));
+
+  game = new Game(gameConfig, players);
+  game.isServer = true;
+  game.io = io;
+  game.onFinish(checkNewGame);
+
+  game.onSync(function(){
+    io.emit('game_sync', game.getState());
+  })
 
   players.forEach(function(player, index){
-    SnakePit.SocketControllable.call(game.snakes[index], sockets[player.id], true);
+    var snake = game.snakes[index],
+        socket = sockets[player.id];
+
+    SnakePit.SocketControllable.call(snake, socket, true);
+
+    socket.on('disconnect', function(){
+      // A player disconnected while he was in the game, kill his snake
+      snake.explode();
+    })
   });
 
-  game.run();
-  console.log('broadcast game_state to everyone');
-  io.emit('game_state', { game: game, ongoing: false });
+  game.start();
+
+  var gameEmit = {game: game.getState(), players: players};
+  console.log(gameEmit);
+  io.emit('game_start', gameEmit);
 }
 
+function checkNewGame() {
+  if(playerPool.length >= gameConfig.player_count) {
+    // Start a new game with the first <player_count> players in playerPool and remove them from the pool
+    newGame(playerPool.splice(0, gameConfig.player_count));
+    io.emit('pool', playerPool);
+  }
+}
 
 io.sockets.on('connection', function(socket){
-  console.log('connection')
+  console.log('New connection')
+
+  // Get the latest pool on connection.
   io.emit('pool', playerPool);
-
-  if(game) {
-    socket.emit('game_state', { game: game, ongoing: true });
-    console.log('broadcast gaem_state to single');
-  }
-
 
   var player;
 
   socket.on('join_pool', function(data){
-    console.log('join_pool: ', data.name)
     player = {
       name: data.name,
       id: Math.random().toString(36).substring(2, 8),
     };
 
+    socket.emit('id', player.id)
+
     sockets[player.id] = socket;
     playerPool.push(player);
 
+    console.log('New player in pool', player)
+
+    // Update everyone on the new pool state
     io.emit('pool', playerPool);
 
-
-    if(playerPool.length >= gameConfig.player_count) {
-      // Start a new game with the first <player_count> players in playerPool and remove them from the pool
-      newGame(playerPool.splice(0, gameConfig.player_count));
-      io.emit('pool', playerPool);
-    }
+    checkNewGame();
   });
 
-
-
   socket.on('disconnect', function(){
-    // Remove this player from the queue
-    playerPool.splice(playerPool.indexOf(player), 1);
-    io.emit('pool', playerPool);
+    var index = playerPool.indexOf(player);
+
+    if(index >= 0){
+      // Remove this player from the pool
+      playerPool.splice(index, 1);
+      io.emit('pool', playerPool);
+    }
   })
 });

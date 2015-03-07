@@ -1,8 +1,6 @@
-var Food = function(freeSquares) {
+var Food = function() {
   this.size = 30;
   this.color = '#fff'
-
-  this.placeFood(freeSquares);
 };
 
 Food.prototype.placeFood = function(freeSquares) {

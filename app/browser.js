@@ -8,32 +8,52 @@ angular.module('snakePitApp', [])
   '$scope',
   function($scope){
     $scope.queue = [];
+    $scope.playerId = '';
     var socket = io.connect('http://localhost:3000/');
+
+    socket.on('id', function(id){
+      $scope.playerId = id;
+    });
 
     socket.on('pool', function(data){
       $scope.queue = data;
       $scope.$digest();
     });
 
-    socket.on('game_state', function(data){
-      var game = new Game({
-        viewport: viewport,
-        game_width: data.game.config.game_width,
-        game_height: data.game.config.game_height,
-        step: data.game.config.step
-      });
-      game.food.x = data.game.food.x;
-      game.food.y = data.game.food.y;
-      if(data.ongoing){
-        console.log('Socket controllable');
-        SnakePit.SocketControllable.call(game.snake, socket, false); // Snake acts as controllable
-      }
-      else {
-        console.log('Keyboard controllable');
-        SnakePit.KeyboardControllable.call(game.snake, viewport, socket); // Snake acts as controllable
-      }
 
-      game.run();
+
+    socket.on('game_start', function(data){
+      data.game.config.viewport = viewport;
+      var game = Game.fromState(data);
+
+      socket.on('game_sync', function(data){
+        game.sync(data);
+      })
+
+      socket.on('food', function(food){
+        game.food.x = food.x;
+        game.food.y = food.y;
+      })
+
+      data.players.forEach(function(player, index){
+        var snake = game.snakes[index];
+
+        if(snake.player == $scope.playerId) {
+          // Keyboard controllable
+          SnakePit.KeyboardControllable.call(snake, viewport, socket);
+        }
+        else {
+          // socket controllable
+          SnakePit.SocketControllable.call(snake, socket, true);
+        }
+
+        socket.on('disconnect', function(){
+          // A player disconnected while he was in the game, kill his snake
+          snake.explode();
+        })
+      });
+
+      game.start();
     })
 
     $scope.joinQueue = function(){

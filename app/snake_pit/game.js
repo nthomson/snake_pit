@@ -1,7 +1,7 @@
 var Snake   = require('./snake'),
     Food    = require('./food');
 
-var Game = function(config) {
+var Game = function(config, players) {
   this.config = config;
   this.context = config.viewport ? this.config.viewport.getContext('2d') : null;
   this.dt = 0;
@@ -13,10 +13,26 @@ var Game = function(config) {
     }
   }
 
-  this.snakes = [new Snake({x: 0, y: 0})];
-  this.snake = this.snakes[0];
-  this.food = new Food(this.freeSquares())
+  this.snakes = players.map(function(player){
+    return new Snake({x: 0, y: 0, id: player.id});
+  });
+
+  this.food = new Food()
+  this.food.placeFood(this.freeSquares());
 };
+
+Game.prototype.start = function(){
+  this.running = true;
+  this.run();
+}
+
+Game.prototype.onFinish = function(callback) {
+  this.finishCallback = callback;
+}
+
+Game.prototype.onSync = function(callback) {
+  this.syncCallback = callback;
+}
 
 // Main game loop
 var start, last = new Date().getTime();
@@ -24,7 +40,7 @@ Game.prototype.run = function(){
   start = new Date().getTime();
   this.handleCollisions();
   this.update((start - last) / 1000.0);
-  this.draw(this.context);
+  if(this.context){ this.draw(this.context); }
   last = start;
   setTimeout(this.run.bind(this), 1);
 };
@@ -35,31 +51,46 @@ Game.prototype.update = function(idt) {
   // Its been long enough to update.
   if(this.dt >= this.config.step) {
     this.dt = 0;
-    this.snake.update();
+    this.snakes.forEach(function(snake){ snake.update(); });
+    if(this.syncCallback)
+      this.syncCallback();
   }
 };
 
 
-Game.prototype.toState = function(){
+Game.prototype.getState = function(){
   return {
-    snakes: this.snakes,
-    food: this.food
+    snakes: this.snakes.map(function(snake){ return snake.getState(); }),
+    food: this.food,
+    config: this.config
   }
 }
 
-Game.prototype.fromState = function(state){
+Game.fromState = function(state){
+  var game = new Game(state.game.config, state.players);
 
+  game.food.x = state.game.food.x;
+  game.food.y = state.game.food.y;
+
+  game.snakes.forEach(function(snake, index){ snake.sections = state.game.snakes[index].sections })
+
+  return game;
+}
+
+Game.prototype.sync = function(game) {
+  this.food.x = game.food.x;
+  this.food.y = game.food.y;
+
+  this.snakes.forEach(function(snake, index){ snake.sections = game.snakes[index].sections })
 }
 
 Game.prototype.draw = function(context) {
-  if(this.context) {
-    //Clear the canvas
-    context.clearRect(0, 0, this.config.game_width, this.config.game_height);
+  //Clear the canvas
+  context.clearRect(0, 0, this.config.game_width, this.config.game_height);
 
-    //Draw all of the game's objects
-    this.snake.draw(context);
-    this.food.draw(context);
-  }
+  //Draw all of the game's objects
+  this.snakes.forEach(function(snake){ snake.draw(context); });
+  this.food.draw(context);
 };
 
 var collides = function(a, b) {
@@ -67,23 +98,31 @@ var collides = function(a, b) {
 }
 
 Game.prototype.handleCollisions = function() {
-  if(!this.snake.dead) {
-    // Snake collides with food
-    if(collides(this.snake.head, this.food)) {
-      this.snake.eat();
-      this.food.placeFood(this.freeSquares());
-    }
+  this.snakes.forEach(function(snake){
+    if(!snake.dead) {
+      // Snake collides with food
+      if(collides(snake.head, this.food)) {
+        snake.eat();
+        console.log('Eat');
 
-    // Snake collides with itself
-    if(this.snake.sections.filter(collides.bind(null, this.snake.head)).length > 1){
-      this.snake.explode();
-    }
+        if(this.isServer) {
+          this.food.placeFood(this.freeSquares());
+          this.io.emit('food', this.food);
+          console.log(this.food);
+        }
+      }
 
-    // Snake collides with wall
-    if(this.outOfMap(this.snake.head)){
-      this.snake.explode();
+      // Snake collides with itself
+      if(snake.sections.filter(collides.bind(null, snake.head)).length > 1){
+        snake.explode();
+      }
+
+      // Snake collides with wall
+      if(this.outOfMap(snake.head)){
+        snake.explode();
+      }
     }
-  }
+  }.bind(this))
 }
 
 Game.prototype.outOfMap = function(obj) {
@@ -91,7 +130,10 @@ Game.prototype.outOfMap = function(obj) {
 }
 
 Game.prototype.freeSquares = function() {
-  var occupiedSquares = this.snake.sections.map(function(s){ return s.x+','+s.y; });
+  var occupiedSquares = this.snakes
+    .map(function(snake){ return snake.sections })
+    .reduce(function(a, b) { return a.concat(b); })
+    .map(function(sec){ return sec.x + ',' + sec.y; })
 
   return this.squares.filter(function(square){
     return occupiedSquares.indexOf(square.x +','+square.y) < 0 // True if current square is unoccupied

@@ -1,9 +1,8 @@
 var Snake = function(base) {
-  this.x = base.x || 0;
-  this.y = base.y || 0;
   this.size = base.size || 30;
   this.color = '#08c';
-  this.sections = [{x: 0, y: 0}]
+  this.player = base.id;
+  this.sections = [{x: base.x, y: base.y}]
   this.head = this.sections[0]
 };
 
@@ -34,6 +33,12 @@ Snake.prototype.update = function() {
   }
 
   this.head = this.sections[0];
+}
+
+Snake.prototype.getState = function() {
+  return {
+    sections: this.sections
+  }
 }
 
 Snake.prototype.draw = function(context) {
