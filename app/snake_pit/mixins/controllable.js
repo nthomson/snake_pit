@@ -19,7 +19,12 @@ var Controllable = function() {
   this.handle_movement = function(obj) {
     var newMove = this.moveQueue.pop();
     if(opposites[newMove] != this.lastDirection) {
+      var old = this.lastDirection;
       this.lastDirection = newMove || this.lastDirection
+      if(old !== this.lastDirection && this._sync) {
+        // We have a change in direction
+        this._sync();
+      }
     }
 
     var newX = obj.x + (this.size * this.xMultiplier())
@@ -27,6 +32,8 @@ var Controllable = function() {
 
     return {x: newX, y: newY}
   }
+
+  this.on = function(e, callback) { this['_'+e] = callback; }
 };
 
 module.exports = Controllable

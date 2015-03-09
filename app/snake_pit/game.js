@@ -1,10 +1,12 @@
 var Snake   = require('./snake'),
     Food    = require('./food');
 
-var Game = function(config, players) {
+var Game = function(config) {
   this.config = config;
   this.context = config.viewport ? this.config.viewport.getContext('2d') : null;
   this.dt = 0;
+  this.io = config.io;
+  this.isServer = config.isServer;
 
   this.squares = [];
   for(var x = 0; x < config.game_width; x+=30) {
@@ -13,66 +15,66 @@ var Game = function(config, players) {
     }
   }
 
-  this.snakes = players.map(function(player){
-    return new Snake({x: 0, y: 0, id: player.id});
-  });
-
+  this.snakes = [];
   this.food = new Food()
-  this.food.placeFood(this.freeSquares());
+  this.food.placeFood(this.freeSquare());
 };
 
+Game.prototype.addPlayer = function(player, placement){
+  console.log(placement);
+  var placement = placement || this.freeSquare(),
+      snake = new Snake({x: placement.x, y: placement.y, id: player.id, color: player.color});
+  this.snakes.push(snake);
+
+  return snake;
+}
+
 Game.prototype.start = function(){
-  this.running = true;
   this.run();
-}
-
-Game.prototype.onFinish = function(callback) {
-  this.finishCallback = callback;
-}
-
-Game.prototype.onSync = function(callback) {
-  this.syncCallback = callback;
 }
 
 // Main game loop
 var start, last = new Date().getTime();
 Game.prototype.run = function(){
+  if(this.shouldSync){
+    this.io.emit('game_sync', this.toJSON())
+    this.shouldSync = false;
+  }
   start = new Date().getTime();
   this.handleCollisions();
   this.update((start - last) / 1000.0);
   if(this.context){ this.draw(this.context); }
   last = start;
-  setTimeout(this.run.bind(this), 1);
+  setTimeout(this.run.bind(this), 100);
 };
 
 Game.prototype.update = function(idt) {
-  this.dt += idt;
-
-  // Its been long enough to update.
-  if(this.dt >= this.config.step) {
-    this.dt = 0;
-    this.snakes.forEach(function(snake){ snake.update(); });
-    if(this.syncCallback)
-      this.syncCallback();
+  this.snakes.forEach(function(snake){ snake.update(); });
+  if(this.syncCallback){
+    this.syncCallback();
   }
 };
 
 
-Game.prototype.getState = function(){
+Game.prototype.toJSON = function(){
   return {
-    snakes: this.snakes.map(function(snake){ return snake.getState(); }),
+    snakes: this.snakes.map(function(snake){ return snake.toJSON(); }),
     food: this.food,
-    config: this.config
+    config: {
+      game_width: this.config.game_width,
+      game_height: this.config.game_height
+    }
   }
 }
 
 Game.fromState = function(state){
-  var game = new Game(state.game.config, state.players);
+  console.log(state);
+  var game = new Game(state.config);
 
-  game.food.x = state.game.food.x;
-  game.food.y = state.game.food.y;
+  game.food.x = state.food.x;
+  game.food.y = state.food.y;
 
-  game.snakes.forEach(function(snake, index){ snake.sections = state.game.snakes[index].sections })
+  game.snakes.forEach(function(snake, index){snake.sections = state.snakes[index].sections })
 
   return game;
 }
@@ -81,7 +83,15 @@ Game.prototype.sync = function(game) {
   this.food.x = game.food.x;
   this.food.y = game.food.y;
 
-  this.snakes.forEach(function(snake, index){ snake.sections = game.snakes[index].sections })
+
+
+  this.snakes.forEach(function(snake, index){
+    console.log(index);
+    console.log(game.snakes);
+    snake.sections = game.snakes[index].sections
+    snake.lastDirection = game.snakes[index].lastDirection
+    snake.head = snake.sections[0];
+  })
 }
 
 Game.prototype.draw = function(context) {
@@ -103,12 +113,15 @@ Game.prototype.handleCollisions = function() {
       // Snake collides with food
       if(collides(snake.head, this.food)) {
         snake.eat();
-        console.log('Eat');
 
         if(this.isServer) {
-          this.food.placeFood(this.freeSquares());
-          this.io.emit('food', this.food);
-          console.log(this.food);
+          this.food.placeFood(this.freeSquare());
+          this.shouldSync = true;
+        }
+        else {
+          this.food.x = undefined;
+          this.food.y = undefined;
+          console.log('disappear!');
         }
       }
 
@@ -130,14 +143,22 @@ Game.prototype.outOfMap = function(obj) {
 }
 
 Game.prototype.freeSquares = function() {
-  var occupiedSquares = this.snakes
-    .map(function(snake){ return snake.sections })
-    .reduce(function(a, b) { return a.concat(b); })
-    .map(function(sec){ return sec.x + ',' + sec.y; })
+  var occupiedSquares = [];
+  if(this.snakes.length) {
+    occupiedSquares = this.snakes
+      .map(function(snake){ return snake.sections })
+      .reduce(function(a, b) { return a.concat(b); })
+      .map(function(sec){ return sec.x + ',' + sec.y; })
+  }
 
   return this.squares.filter(function(square){
     return occupiedSquares.indexOf(square.x +','+square.y) < 0 // True if current square is unoccupied
   });
+}
+
+Game.prototype.freeSquare = function() {
+  var freeSquares = this.freeSquares()
+  return freeSquares[Math.floor(Math.random()*freeSquares.length)];
 }
 
 module.exports = Game

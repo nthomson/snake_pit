@@ -3,10 +3,8 @@ var Food = function() {
   this.color = '#fff'
 };
 
-Food.prototype.placeFood = function(freeSquares) {
+Food.prototype.placeFood = function(placement) {
   // Randomly generate placement from within list of free squares
-  var placement = freeSquares[Math.floor(Math.random()*freeSquares.length)];
-
   this.x = placement.x;
   this.y = placement.y;
 }

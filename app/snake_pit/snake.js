@@ -1,18 +1,26 @@
 var Snake = function(base) {
+  var colors = ['#08c', '#8c0', '#c80', '#88c', '#c08'];
   this.size = base.size || 30;
-  this.color = '#08c';
+  this.color = base.color || colors[Math.floor(Math.random()*colors.length)];
   this.player = base.id;
   this.sections = [{x: base.x, y: base.y}]
+  this.id = base.id;
   this.head = this.sections[0]
 };
 
+Snake.prototype._death = function(){};
+Snake.prototype._eat = function(){};
+
 Snake.prototype.eat = function() {
   this.ateSomething = true;
+  this._eat();
+  console.log('eat');
 }
 
 Snake.prototype.explode = function() {
   console.log('dead');
   this.dead = true
+  this._death();
 }
 
 Snake.prototype.update = function() {
@@ -35,10 +43,17 @@ Snake.prototype.update = function() {
   this.head = this.sections[0];
 }
 
-Snake.prototype.getState = function() {
+Snake.prototype.toJSON = function() {
   return {
-    sections: this.sections
+    id: this.id,
+    sections: this.sections,
+    lastDirection: this.lastDirection,
+    color: this.color
   }
+}
+
+Snake.prototype.on = function(e, callback) {
+  this['_'+e] = callback;
 }
 
 Snake.prototype.draw = function(context) {
