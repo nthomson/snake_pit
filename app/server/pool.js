@@ -10,7 +10,7 @@ Pool.prototype = {
     player.name = player.name || data.name;
 
     // Send the player their ID
-    socket.emit('id', player.id)
+    socket.emit('me', player)
 
     this.queue.push(player);
 

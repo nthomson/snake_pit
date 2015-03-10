@@ -2,9 +2,9 @@ var Snake = function(base) {
   var colors = ['#08c', '#8c0', '#c80', '#88c', '#c08'];
   this.size = base.size || 30;
   this.color = base.color || colors[Math.floor(Math.random()*colors.length)];
-  this.player = base.id;
   this.sections = [{x: base.x, y: base.y}]
   this.id = base.id;
+  this.name = base.name;
   this.head = this.sections[0]
 };
 

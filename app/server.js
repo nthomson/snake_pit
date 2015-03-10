@@ -41,16 +41,21 @@ io.sockets.on('connection', function(socket){
       });
 
       snake.on('death', function(){
-        // pool.removePlayer(player, socket)
         game.snakes = game.snakes.filter(function(s){ return s.id != snake.id }); // Remove the snake from the game
         io.emit('remove_player', {id: snake.id})
         pool.addPlayer(newPlayer, sockets[newPlayer.id]);
-      })
+      });
+
     }
 
     io.emit('pool', pool.queue)
   })
 
   socket.on('join_pool', pool.addPlayer.bind(pool, player, socket));
-  socket.on('disconnect', pool.removePlayer.bind(pool, player, socket))
+  socket.on('disconnect', function(){
+    game.snakes = game.snakes.filter(function(s){ return s.id != player.id }); // Remove the snake from the game
+    io.emit('remove_player', {id: player.id})
+    pool.removePlayer(player, socket)
+  })
+
 });

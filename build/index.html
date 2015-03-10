@@ -36,8 +36,8 @@
     <div class='row' ng-controller='gameCtrl'>
       <div class='col-md-8'>
         <div class='card'>
-          <!-- <h1 class='text-center'>Snake Pit</h1> -->
-
+          <h1 class='text-center'>Snake Pit</h1>
+          <p>You are {{player.name}}</p>
           <div class='text-center'>
             <canvas id='viewport' width='480' height='480' tabindex="1"></canvas>
           </div>
@@ -46,7 +46,7 @@
 
       <div class='col-md-4'>
         <div class='card'>
-          <!-- <h1 class='text-center'>Queue</h1> -->
+          <h1 class='text-center'>Queue</h1>
           <ol>
             <li ng-repeat='player in queue'>{{player.name}}</li>
           </ol>
@@ -60,6 +60,12 @@
               </div>
             </form>
           </div>
+        </div>
+        <div class='card'>
+          <h1 class='text-center'>Currently Playing</h1>
+          <ol>
+            <li ng-repeat='snake in game.snakes'>{{snake.name}}</li>
+          </ol>
         </div>
       </div>
     </div>

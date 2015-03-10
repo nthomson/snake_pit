@@ -8,11 +8,11 @@ angular.module('snakePitApp', [])
   '$scope',
   function($scope){
     $scope.queue = [];
-    $scope.playerId = '';
+    $scope.player = {};
     var socket = io.connect('http://localhost:3000/');
 
-    socket.on('id', function(id){
-      $scope.playerId = id;
+    socket.on('me', function(player){
+      $scope.player = player;
     });
 
     socket.on('pool', function(data){
@@ -23,7 +23,7 @@ angular.module('snakePitApp', [])
     socket.on('game_start', function(data){
 
       var handleSnakeControl = function(snake) {
-        if(snake.id == $scope.playerId) {
+        if(snake.id == $scope.player.id) {
           SnakePit.KeyboardControllable.call(snake, viewport, socket);
         }
         else {
@@ -39,6 +39,9 @@ angular.module('snakePitApp', [])
 
       data.config.viewport = viewport;
       var game = Game.fromState(data);
+      $scope.game = game;
+
+      $scope.players = game.snakes;
 
       data.snakes.forEach(function(s){
         snake = game.addPlayer(s, {x: s.x, y: s.y, color: s.color});

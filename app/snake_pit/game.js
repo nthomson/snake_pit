@@ -26,7 +26,7 @@ Game.prototype.snakeById = function(id) {
 
 Game.prototype.addPlayer = function(player, placement){
   var placement = placement || this.freeSquare(),
-      snake = new Snake({x: placement.x, y: placement.y, id: player.id, color: player.color});
+      snake = new Snake({x: placement.x, y: placement.y, id: player.id, color: player.color, name: player.name});
   this.snakes.push(snake);
 
   return snake;
@@ -133,7 +133,11 @@ Game.prototype.handleCollisions = function() {
       // Snake collides with another snake
       this.snakes.forEach(function(enemy){
         if(enemy === snake){ return; }
-        if(enemy.sections.filter(collides.bind(null, snake.head)).length > 0){
+        if(collides(enemy.head, snake.head)){
+          snake.explode();
+          enemy.explode();
+        }
+        else if(enemy.sections.filter(collides.bind(null, snake.head)).length > 0){
           snake.explode();
         }
       })
