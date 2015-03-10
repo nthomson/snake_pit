@@ -62,7 +62,7 @@ angular.module('snakePitApp', [])
         game.snakes = game.snakes.filter(function(s){ return s.id != data.id }); // Remove the snake from the game
       });
 
-      game.start();
+      game.run();
     });
 
     $scope.joinQueue = function(){

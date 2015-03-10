@@ -13,7 +13,7 @@ var game = new Game({
   isServer: true
 });
 
-game.start();
+game.run();
 
 var pool = new Pool();
 
