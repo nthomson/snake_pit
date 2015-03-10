@@ -45,11 +45,6 @@ angular.module('snakePitApp', [])
         handleSnakeControl(snake);
       })
 
-      // socket.on('move', function(e){
-      //   game.snakeById(s.id).moveQueue.unshift(e.direction)
-      //   console.log('Browser move', e);
-      // });
-
       data.snakes.forEach(handleSnakeControl);
 
       socket.on('game_sync', function(data){

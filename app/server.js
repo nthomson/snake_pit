@@ -32,8 +32,6 @@ io.sockets.on('connection', function(socket){
 
       var newPlayer = pool.queue.shift(),
           snake = game.addPlayer(newPlayer);
-      console.log('newPlayer', newPlayer);
-      console.log('Snake in game?', game.snakes.filter(function(s){ return s == snake }).length >= 0);
       io.emit('add_player', {player: newPlayer, placement: {x: snake.head.x, y: snake.head.y}})
 
       sockets[newPlayer.id].removeAllListeners('move');
@@ -44,9 +42,7 @@ io.sockets.on('connection', function(socket){
 
       snake.on('death', function(){
         // pool.removePlayer(player, socket)
-        console.log(snake.id, 'is dead')
         game.snakes = game.snakes.filter(function(s){ return s.id != snake.id }); // Remove the snake from the game
-        console.log('Snakes after death', game.snakes)
         io.emit('remove_player', {id: snake.id})
         pool.addPlayer(newPlayer, sockets[newPlayer.id]);
       })

@@ -21,7 +21,7 @@ var Game = function(config) {
 };
 
 Game.prototype.snakeById = function(id) {
-  return this.snakes.filter(function(s){ return s.id == e.id })[0];
+  return this.snakes.filter(function(s){ return s.id === e.id })[0];
 }
 
 Game.prototype.addPlayer = function(player, placement){
@@ -129,6 +129,14 @@ Game.prototype.handleCollisions = function() {
       if(this.outOfMap(snake.head)){
         snake.explode();
       }
+
+      // Snake collides with another snake
+      this.snakes.forEach(function(enemy){
+        if(enemy === snake){ return; }
+        if(enemy.sections.filter(collides.bind(null, snake.head)).length > 0){
+          snake.explode();
+        }
+      })
     }
   }.bind(this))
 }
