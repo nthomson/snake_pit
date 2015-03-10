@@ -20,8 +20,11 @@ var Game = function(config) {
   this.food.placeFood(this.freeSquare());
 };
 
+Game.prototype.snakeById = function(id) {
+  return this.snakes.filter(function(s){ return s.id == e.id })[0];
+}
+
 Game.prototype.addPlayer = function(player, placement){
-  console.log(placement);
   var placement = placement || this.freeSquare(),
       snake = new Snake({x: placement.x, y: placement.y, id: player.id, color: player.color});
   this.snakes.push(snake);
@@ -68,13 +71,10 @@ Game.prototype.toJSON = function(){
 }
 
 Game.fromState = function(state){
-  console.log(state);
   var game = new Game(state.config);
 
   game.food.x = state.food.x;
   game.food.y = state.food.y;
-
-  game.snakes.forEach(function(snake, index){snake.sections = state.snakes[index].sections })
 
   return game;
 }
@@ -83,11 +83,7 @@ Game.prototype.sync = function(game) {
   this.food.x = game.food.x;
   this.food.y = game.food.y;
 
-
-
   this.snakes.forEach(function(snake, index){
-    console.log(index);
-    console.log(game.snakes);
     snake.sections = game.snakes[index].sections
     snake.lastDirection = game.snakes[index].lastDirection
     snake.head = snake.sections[0];
@@ -121,7 +117,6 @@ Game.prototype.handleCollisions = function() {
         else {
           this.food.x = undefined;
           this.food.y = undefined;
-          console.log('disappear!');
         }
       }
 

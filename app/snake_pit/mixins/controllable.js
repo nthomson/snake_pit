@@ -17,11 +17,16 @@ var Controllable = function() {
   }
 
   this.handle_movement = function(obj) {
+    if(this.moveQueue.length)
+      console.log(this.moveQueue);
     var newMove = this.moveQueue.pop();
+
+
     if(opposites[newMove] != this.lastDirection) {
       var old = this.lastDirection;
       this.lastDirection = newMove || this.lastDirection
-      if(old !== this.lastDirection && this._sync) {
+      // console.log('sync');
+      if(old !== this.lastDirection && !!this._sync) {
         // We have a change in direction
         this._sync();
       }

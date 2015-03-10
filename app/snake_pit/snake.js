@@ -14,11 +14,9 @@ Snake.prototype._eat = function(){};
 Snake.prototype.eat = function() {
   this.ateSomething = true;
   this._eat();
-  console.log('eat');
 }
 
 Snake.prototype.explode = function() {
-  console.log('dead');
   this.dead = true
   this._death();
 }

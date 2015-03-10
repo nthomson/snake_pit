@@ -17,7 +17,6 @@ game.start();
 
 var pool = new Pool();
 
-
 io.sockets.on('connection', function(socket){
   var player = { id: Math.random().toString(36).substring(2, 8) };
   sockets[player.id] = socket;
@@ -29,21 +28,27 @@ io.sockets.on('connection', function(socket){
 
   pool.on('update', function(){
     // While there are players in the queue and room in the game
-    while(game.snakes.length < game.config.max_players && pool.queue.length) {
-      var player = pool.queue.shift(),
-          snake = game.addPlayer(player);
+    while(pool.queue.length && game.snakes.length < game.config.max_players) {
 
-      io.emit('add_player', {player: player, placement: {x: snake.head.x, y: snake.head.y}})
+      var newPlayer = pool.queue.shift(),
+          snake = game.addPlayer(newPlayer);
+      console.log('newPlayer', newPlayer);
+      console.log('Snake in game?', game.snakes.filter(function(s){ return s == snake }).length >= 0);
+      io.emit('add_player', {player: newPlayer, placement: {x: snake.head.x, y: snake.head.y}})
 
-      SnakePit.SocketControllable.call(snake, socket, true);
+      sockets[newPlayer.id].removeAllListeners('move');
+      SnakePit.SocketControllable.call(snake, sockets[newPlayer.id]);
       snake.on('sync', function(){
-        console.log('snake sync');
         io.emit('game_sync', game.toJSON());
       });
 
       snake.on('death', function(){
-        game.snakes = game.snakes.filter(function(s){ return s != snake }); // Remove the snake from the game
-        pool.addPlayer(player, socket);
+        // pool.removePlayer(player, socket)
+        console.log(snake.id, 'is dead')
+        game.snakes = game.snakes.filter(function(s){ return s.id != snake.id }); // Remove the snake from the game
+        console.log('Snakes after death', game.snakes)
+        io.emit('remove_player', {id: snake.id})
+        pool.addPlayer(newPlayer, sockets[newPlayer.id]);
       })
     }
 
@@ -51,5 +56,5 @@ io.sockets.on('connection', function(socket){
   })
 
   socket.on('join_pool', pool.addPlayer.bind(pool, player, socket));
-  socket.on('disconnect', pool.removePlayer.bind(pool, player))
+  socket.on('disconnect', pool.removePlayer.bind(pool, player, socket))
 });

@@ -20,29 +20,39 @@ angular.module('snakePitApp', [])
       $scope.$digest();
     });
 
-
-
     socket.on('game_start', function(data){
 
-      data.config.viewport = viewport;
-      var game = Game.fromState(data);
-
       var handleSnakeControl = function(snake) {
-        if(snake.id == $scope.playerId)
+        if(snake.id == $scope.playerId) {
           SnakePit.KeyboardControllable.call(snake, viewport, socket);
-        else
-          SnakePit.SocketControllable.call(snake, socket, true);
+        }
+        else {
+          SnakePit.Controllable.call(snake, socket, false);
+        }
 
-        console.log(snake);
         snake.on('death', function(){
           game.snakes = game.snakes.filter(function(s){ return s != snake }); // Remove the snake from the game
         })
       }
 
+
+
+      data.config.viewport = viewport;
+      var game = Game.fromState(data);
+
+      data.snakes.forEach(function(s){
+        snake = game.addPlayer(s, {x: s.x, y: s.y, color: s.color});
+        handleSnakeControl(snake);
+      })
+
+      // socket.on('move', function(e){
+      //   game.snakeById(s.id).moveQueue.unshift(e.direction)
+      //   console.log('Browser move', e);
+      // });
+
       data.snakes.forEach(handleSnakeControl);
 
       socket.on('game_sync', function(data){
-        console.log(data);
         game.sync(data);
       });
 
@@ -50,10 +60,12 @@ angular.module('snakePitApp', [])
         handleSnakeControl(game.addPlayer(data.player, data.placement));
       });
 
+      socket.on('remove_player', function(data){
+        game.snakes = game.snakes.filter(function(s){ return s.id != data.id }); // Remove the snake from the game
+      });
+
       game.start();
     });
-
-
 
     $scope.joinQueue = function(){
       var player = {name: $scope.playerName};

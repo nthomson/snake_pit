@@ -7,7 +7,6 @@ Pool.prototype = {
   _update: function(){},
 
   addPlayer: function(player, socket, data){
-    console.log('add player');
     player.name = player.name || data.name;
 
     // Send the player their ID
@@ -19,7 +18,7 @@ Pool.prototype = {
     this._update();
   },
 
-  removePlayer: function(player) {
+  removePlayer: function(player, socket) {
     this.queue = this.queue.filter(function(p) { return p.id !== player.id; });
 
     this._update();
